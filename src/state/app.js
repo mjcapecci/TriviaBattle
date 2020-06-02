@@ -1,17 +1,14 @@
 import axios from "axios"
 
 const initialState = {
-  currentResult: {},
-  currentQuestion: {},
+  currentResult: null,
+  answers: [],
   appLoading: false,
   appError: null,
 }
 
-// const TOGGLE_DRAWER = "TOGGLE_DRAWER"
-// export const toggleDrawer = open => ({ type: TOGGLE_DRAWER, payload: open })
-
 const CURRENT_RESULT = "CURRENT_RESULT"
-const CURRENT_QUESTION = "CURRENT_QUESTION"
+const ANSWERS = "ANSWERS"
 const APP_LOADING = "APP_LOADING"
 const APP_ERROR = "APP_ERROR"
 
@@ -26,11 +23,11 @@ export const getQuestion = (
     `https://opentdb.com/api.php?amount=${amount}&category=${category}&difficulty=${difficulty}&type=${type}`
   )
   try {
+    dispatch(populateAnswers(res.data))
     dispatch({
       type: CURRENT_RESULT,
       payload: res.data,
     })
-    dispatch(processQuestion(res))
   } catch (error) {
     dispatch({
       type: APP_ERROR,
@@ -39,11 +36,22 @@ export const getQuestion = (
   }
 }
 
-export const processQuestion = res => dispatch => {
-  const questionInfo = res.data.results[0]
+export const populateAnswers = result => dispatch => {
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max))
+  }
+
+  let newAnswers = []
+  result.results[0].incorrect_answers.map(answer => {
+    newAnswers.push({ answer, isCorrect: false })
+  })
+  newAnswers.splice(getRandomInt(4), 0, {
+    answer: result.results[0].correct_answer,
+    isCorrect: true,
+  })
   dispatch({
-    type: CURRENT_QUESTION,
-    payload: questionInfo,
+    type: ANSWERS,
+    payload: newAnswers,
   })
 }
 
@@ -56,8 +64,8 @@ export default (state = initialState, action) => {
   switch (type) {
     case CURRENT_RESULT:
       return { ...state, currentResult: payload, appLoading: false }
-    case CURRENT_QUESTION:
-      return { ...state, currentQuestion: payload, appLoading: false }
+    case ANSWERS:
+      return { ...state, answers: payload }
     case APP_LOADING:
       return { ...state, appLoading: true }
     case APP_ERROR:

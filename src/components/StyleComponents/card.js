@@ -15,6 +15,12 @@ export const StyledMainCard = styled.div`
   }
 
   .answer-item {
-    margin: 2rem;
+    padding: 2rem;
+    text-align: center;
+    transition: background 0.1s;
+
+    &:hover {
+      background: grey;
+    }
   }
 `
